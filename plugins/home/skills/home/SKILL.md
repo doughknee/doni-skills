@@ -35,7 +35,9 @@ Keep related fixes with one implementation owner through testing. Home may take 
 
 ## Recover only the context needed
 
-On first entry or uncertain recovery, identify the project, any existing Home, and relevant workers using the harness tools above. Reuse verified session context on routine turns. In Codex, name a new project Home `<Project> · home`, avoid duplicate Homes, and preserve returned worker titles when reporting them.
+On first entry or uncertain recovery, identify the project, any existing Home, and relevant workers using the harness tools above. Reuse verified session context on routine turns. Avoid duplicate Homes, and in Codex preserve returned worker titles when reporting them.
+
+**The Home session title is a live status line, and the session stays pinned.** Format: `<Project> · <KEY> · <active>/<total> workers`, where `<KEY>` is the issue currently in focus (`home` when none) and the counts are this session's workers still running over all workers it has started. Set it on entry, then again at every change of focus, dispatch, and worker return; never leave it stale. In Claude Code use `set_session_title` with `self` and `set_pinned`; in Codex the thread title serves the same role.
 
 **A bare invocation is a status request, not a dispatch.** When Home is invoked with no task (`/home` alone, or a request for status), do the cheap read-only recovery, report the state in a few lines, and ask what the user wants to focus on. Do not propose briefs, start workers, flag tasks, or write to the board or register until the user names a direction. Reading logs, the board and the repository is fine; anything that changes state waits. The user's answer is the scope for the rest of the turn.
 
@@ -43,17 +45,19 @@ Read the relevant repository instructions (`CLAUDE.md`, `AGENTS.md`, or both), t
 
 Before shared edits or testing, check active ownership of files and interfaces, worktrees, ports, desktop app instances, databases, and deployments. Worktrees do not isolate runtime resources. Reuse the existing preview when suitable, assign one owner to each shared resource, and preserve other people's edits and servers. Serialize overlapping work; independent work may run in parallel.
 
+**One worker per project runs the desktop dev app.** Ports are fixed and the app is single-instance, so Home names the one worker that owns the running app; every other concurrent worker does backend, CI, docs, or tests, and a brief that needs the app waits for the owner to finish.
+
 ## Models
 
 User-approved defaults. A direct user choice overrides them.
 
 | Work | Claude Code | Codex |
 |---|---|---|
-| Planning, consequential decisions, ambiguous investigations | `opus` | Astra (`gpt-6-astra`) |
-| Bounded implementation, known-cause fixes, tests, routine shipping | `sonnet` | Sol (`gpt-5.6-sol`) |
+| Home itself, design or judgement-heavy briefs, ambiguous investigations | `fable` | Astra (`gpt-6-astra`) |
+| Everything else: implementation, known-cause fixes, tests, routine shipping | `sonnet` (Sonnet 5) | Sol (`gpt-5.6-sol`) |
 | Mechanical copy, formatting, repetitive replacements | `haiku` | Luna (`gpt-5.6-luna`) |
 
-For a separate worker, briefly state the model and the reason, and pass it through the worker tool's model parameter; prompt text does not configure it. Keep default reasoning effort unless a concrete need justifies a change. Verify availability instead of silently upgrading. Home cannot switch its own model, and a worker is never created solely to change models for a small fix.
+Workers default to the cheapest row that can do the job; running everything on the top row burns the usage budget (Brandon, 2026-09-06). For a separate worker, briefly state the model and the reason, and pass it through the worker tool's model parameter; prompt text does not configure it. Keep default reasoning effort unless a concrete need justifies a change. Verify availability instead of silently upgrading. Home cannot switch its own model, and a worker is never created solely to change models for a small fix.
 
 ## Lightweight Linear
 
@@ -104,7 +108,9 @@ Read existing evidence before requesting another handoff. Missing text in a task
 
 ## Publishing and approvals
 
-Decide who publishes before acting. For work authorized in Home, Home normally executes approved pushes, PRs, merges, production configuration, deployments, and releases; the implementation owner prepares and can verify the result. Work approved directly in a user-visible worker can finish there. Keep ownership transfers few and honor an owner the user explicitly chose.
+**An approved worker finishes its own PR.** Scope approval covers the whole path: open the PR, merge it once CI is green (squash unless the branch has meaningful commits), move the issue to Done, and report back (Brandon, 2026-09-06: no per-PR approval). Home does not re-ask. Releases are the exception: anything that goes out to users, Discord, or other people waits for the user's word.
+
+Beyond that, decide who publishes before acting. Production configuration, deployments, and releases authorized in Home are executed by Home; the implementation owner prepares and can verify the result. Work approved directly in a user-visible worker can finish there. Keep ownership transfers few and honor an owner the user explicitly chose.
 
 Prepare a concrete, reviewable change before asking for any approval that is actually missing. Reuse authorization already given and ask only about uncovered actions or scope. Report real access or approval failures instead of inventing gates from this skill. A skill cannot grant platform permissions or turn an agent-written relay into a direct user message.
 
