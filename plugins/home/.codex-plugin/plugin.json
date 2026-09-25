@@ -7,10 +7,12 @@
   },
   "repository": "https://github.com/doughknee/doni-skills",
   "license": "MIT",
-  "keywords": [
-    "project-management",
-    "coordination",
-    "linear",
-    "shipping"
-  ]
+  "keywords": ["project-management", "coordination", "linear", "shipping"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Home",
+    "shortDescription": "Project home base for planning, delegating, and shipping work",
+    "developerName": "Doni",
+    "category": "Productivity"
+  }
 }

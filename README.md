@@ -1,28 +1,49 @@
 # doni-skills
 
-Claude Code plugin marketplace for Doni's skills.
+Doni's skills, packaged as a plugin marketplace that works in both Claude Code and Codex.
+
+## Plugins
+
+| Plugin | What it does | Run it |
+|---|---|---|
+| `home` | Project home base: keeps projects moving, coordinates workers, tracks work in Linear, and ships verified results. | Claude Code: `/home:home` · Codex: `$home` |
 
 ## Install
 
-In a Claude Code session:
+**Claude Code** (in a session):
 
 ```
 /plugin marketplace add doughknee/doni-skills
 /plugin install home@doni-skills
 ```
 
-Then run the skill with `/home:home`.
+**Codex** (in a terminal):
+
+```
+codex plugin marketplace add doughknee/doni-skills
+codex plugin add home@doni-skills
+```
 
 ## Get updates
 
-Updates ship on every push to `main`. To pick them up automatically, open `/plugin`, go to **Marketplaces**, select `doni-skills`, and choose **Enable auto-update**. To pull manually:
+Every push to `main` is a new release.
+
+**Claude Code:** open `/plugin`, go to **Marketplaces**, select `doni-skills`, and choose **Enable auto-update**. Or update by hand with `/plugin marketplace update doni-skills`.
+
+**Codex:**
 
 ```
-/plugin marketplace update doni-skills
+codex plugin marketplace upgrade doni-skills
+codex plugin add home@doni-skills
 ```
 
-## Plugins
+## Layout
 
-| Plugin | What it does |
-|---|---|
-| `home` | Project home: keeps projects moving, coordinates worker sessions, tracks work in Linear, and ships verified results. |
+```
+.claude-plugin/marketplace.json        marketplace catalog (read by both Claude Code and Codex)
+plugins/home/.claude-plugin/plugin.json   Claude Code manifest
+plugins/home/.codex-plugin/plugin.json    Codex manifest
+plugins/home/skills/home/SKILL.md         the skill itself (shared)
+```
+
+To change the skill, edit `plugins/home/skills/home/SKILL.md` and push. Both harnesses read the same file.

@@ -1,6 +1,6 @@
 {
   "name": "doni-skills",
-  "description": "Doni's Claude Code skills",
+  "description": "Doni's skills for Claude Code and Codex",
   "owner": {
     "name": "Doni",
     "url": "https://github.com/doughknee"
@@ -9,7 +9,7 @@
     {
       "name": "home",
       "source": "./plugins/home",
-      "description": "Project home: keeps projects moving, coordinates worker sessions, tracks work in Linear, and ships verified results."
+      "description": "Project home base: keeps projects moving, coordinates workers, tracks work in Linear, and ships verified results."
     }
   ]
 }
