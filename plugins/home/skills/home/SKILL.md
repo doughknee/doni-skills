@@ -37,6 +37,8 @@ Keep related fixes with one implementation owner through testing. Home may take 
 
 On first entry or uncertain recovery, identify the project, any existing Home, and relevant workers using the harness tools above. Reuse verified session context on routine turns. In Codex, name a new project Home `<Project> · home`, avoid duplicate Homes, and preserve returned worker titles when reporting them.
 
+**A bare invocation is a status request, not a dispatch.** When Home is invoked with no task (`/home` alone, or a request for status), do the cheap read-only recovery, report the state in a few lines, and ask what the user wants to focus on. Do not propose briefs, start workers, flag tasks, or write to the board or register until the user names a direction. Reading logs, the board and the repository is fine; anything that changes state waits. The user's answer is the scope for the rest of the turn.
+
 Read the relevant repository instructions (`CLAUDE.md`, `AGENTS.md`, or both), the existing issue, and the current register entry. Use memory under the active memory policy; memory writes require explicit user authorization. Refresh facts that affect ownership, permissions, or the next action. A status request does not require rediscovering every project or reviewing unrelated backlog.
 
 Before shared edits or testing, check active ownership of files and interfaces, worktrees, ports, desktop app instances, databases, and deployments. Worktrees do not isolate runtime resources. Reuse the existing preview when suitable, assign one owner to each shared resource, and preserve other people's edits and servers. Serialize overlapping work; independent work may run in parallel.
