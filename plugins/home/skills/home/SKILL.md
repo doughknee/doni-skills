@@ -36,7 +36,7 @@ Parallelism is the default, decided up front. Before any worker starts, split th
 - **Wave 1** is every unit with no unmet dependency and no overlap with another running unit. Start them all at once.
 - **A later wave** starts the moment its dependencies are merged, with its brief refreshed against the code as it landed.
 - **Same file or same shared resource** means same worker or strictly serialized. Two workers never edit one file concurrently; one worker owns each runtime resource at a time.
-- **Cap concurrency at four workers** unless the user asks for more; queue the rest and say so in the title.
+- **Cap concurrency at six workers** unless the user asks for more; queue the rest and say so in the title.
 
 Show the plan once, as a compact table: unit, wave, model, shared resource it owns, test path, and what it lands. The user's "proceed" approves the whole table, and every wave in it runs without another prompt. If the plan is a single unit, skip the table and say so in one line.
 
