@@ -1,0 +1,8 @@
+{
+  "name": "home",
+  "description": "Project home: keeps projects moving, coordinates worker sessions, tracks work in Linear, and ships verified results.",
+  "author": {
+    "name": "Doni",
+    "url": "https://github.com/doughknee"
+  }
+}
