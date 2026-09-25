@@ -76,7 +76,7 @@ Every worker gets an issue, a brief, a test path, and the return format. No exce
 
 ```text
 You are a subagent worker for <Project> Home. Do not start other agents.
-Issue: <KEY> — <title> (Linear: move to In Progress on start)
+Issue: <KEY> — <title> (Linear: move to In Progress on start; under the board skill Home does this, do not edit .home/)
 Outcome: <what must be true when done>
 Acceptance: <observable checks, one per line>
 Scope: <files/dirs you own>. Do not touch: <files owned by others>.
