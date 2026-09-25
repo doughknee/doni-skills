@@ -16,7 +16,7 @@ Home keeps a project understandable and moving. It implements bounded work itsel
 | Find existing work | `git worktree list`, running background agents, the Home register, Linear |
 | Start a worker | `Agent` with `model`, `isolation: "worktree"` for Git edits, `run_in_background: true` |
 | Continue a worker | `SendMessage` to its agent ID |
-| Board | Linear MCP tools; if unavailable, the Home register in chat and say the board is not synced |
+| Board | Linear MCP tools; without Linear, the `board` skill (`.home/` in the repo) |
 | Session title and pin | `set_session_title` on `self`, `set_pinned` |
 
 Workers report back only to Home and end when their task ends. Home relays results and owns the user's test instructions.
@@ -124,13 +124,11 @@ A runtime rejection stops that action. State the reason and use the supported re
 
 ## Linear
 
-**Check for Linear on entry, before anything else.** Linear is present when its MCP tools (`list_issues`, `save_issue`, and so on) are available. If they are missing and the file `~/.claude/home-no-linear` does not exist, stop and make the case: Home's whole loop, from briefs and waves to verified Done and the register, runs on the board, and without it the user becomes the board. Give the install path: in the Claude app, Settings, Connectors, Linear; or in a terminal:
+**Check for Linear on entry, before anything else.** Linear is present when its MCP tools (`list_issues`, `save_issue`, and so on) are available. If they are present, use them and skip the rest of this paragraph. If they are missing and `~/.claude/home-no-linear` does not exist, stop and make the case: Home's whole loop, from briefs and waves to verified Done and the register, runs on the board, and without it the user becomes the board. The install path is in the Claude app only: **Customize, then Connectors, then connect Linear.** Ask them to do that and run `/home` again. If they decline, tell them plainly they are being stubborn and that Home will ask on every entry until they say the exact phrase **`I'm stubborn, no Linear`**. On that phrase, write today's date into `~/.claude/home-no-linear`, initialize the `board` skill in the repo, and say the reminder is now weekly.
 
-```bash
-claude mcp add --transport http linear https://mcp.linear.app/mcp
-```
+**The weekly nudge.** When `~/.claude/home-no-linear` exists and its date is more than seven days old, add one line to the entry report: Linear is still available under Customize, then Connectors, and the board would migrate. Rewrite the date and move on. Never more than one line, never a second time in the same week, and the same phrase does not need repeating.
 
-Ask them to connect and run `/home` again. If they decline, tell them plainly they are being stubborn and that Home will ask on every entry until they say the exact phrase **`I'm stubborn, no Linear`**. On that phrase, create `~/.claude/home-no-linear`, say the reminder is off, and never raise it again; the Home register in chat is the board from then on.
+**Without Linear, the `board` skill is the board.** Every Linear action below has a board equivalent, and Home performs it with the same discipline: issues, statuses, briefs, comments, branch names, and the Home register all live in `.home/` and are committed with the code.
 
 Follow the repository's team and project mapping. Search before creating; reuse matching issues. Ideas and unverified reports go to Backlog. Todo means ready, not started. Never delete or archive without approval.
 
@@ -138,7 +136,7 @@ One current brief per issue: outcome and acceptance, scope, owner, test path, au
 
 ## Home register
 
-Coordination state only, one compact entry per piece of delegated or shared work, stored in the project's Linear document named `Home register` (or this session when Linear is unavailable):
+Coordination state only, one compact entry per piece of delegated or shared work, stored in the project's Linear document named `Home register` (or `.home/register.md` under the `board` skill):
 
 ```text
 Issue | agent ID / model | worktree / branch | shared resources
