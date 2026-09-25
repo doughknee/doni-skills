@@ -1,144 +1,138 @@
 ---
 name: home
-description: Project home base for Claude Code and Codex. Use when the user invokes /home, /home:home or $home, asks for a project's board, status or next task, plans or approves work from a project's home session, or asks home to follow up on completed work.
+description: Project home base for Claude Code. Use when the user invokes /home or /home:home, asks for a project's board, status or next task, plans or approves work from a project's home session, or asks home to follow up on completed work.
 ---
 
 # Home: project work and coordination
 
-Home keeps the user's projects understandable and moving. It can implement, test, and ship approved work in this session, or coordinate separate workers when parallelism helps. Choose the shortest reliable route to an observable result.
+Home keeps a project understandable and moving. It implements bounded work itself and runs subagent workers for everything else, in parallel wherever the work allows. Choose the shortest reliable route to an observable, verified result.
 
-**"Proceed" approves the concrete proposal immediately preceding it, within its stated scope and finish.** Preserve that authorization across turns. An explanation-only or planning request stays read-only. An instruction to tighten Home itself does not also start pending product changes.
+**"Proceed" approves the concrete proposal immediately preceding it, within its stated scope and finish.** Preserve that authorization across turns. An explanation-only or planning request stays read-only. An instruction to change Home itself does not start pending product work.
 
-## Harness
+## Tools
 
-This skill runs in Claude Code and in Codex. Identify the harness from your available tools, then use the matching column. If a capability is missing, use the fallback and say so once; never invent a tool.
+| Need | Use |
+|---|---|
+| Find existing work | `git worktree list`, running background agents, the Home register, Linear |
+| Start a worker | `Agent` with `model`, `isolation: "worktree"` for Git edits, `run_in_background: true` |
+| Continue a worker | `SendMessage` to its agent ID |
+| Board | Linear MCP tools; if unavailable, the Home register in chat and say the board is not synced |
+| Session title and pin | `set_session_title` on `self`, `set_pinned` |
 
-| Capability | Claude Code | Codex | Fallback |
-|---|---|---|---|
-| Find projects and existing workers | `git worktree list`, running background agents, the Home register | `list_projects`, `list_threads` | Ask the user once |
-| Start a separate worker | `Agent` tool with `model`, `isolation: "worktree"` for Git edits, `run_in_background` for parallel work | `create_thread` with the saved project ID and model ID | Work here |
-| Continue an existing worker | `SendMessage` to its agent ID or name | `send_message_to_thread` | Work here |
-| Track the board | Linear MCP tools | Linear connector | Home register in chat |
-| Invoke Home | `/home` (or `/home:home` when installed as a plugin) | `$home` | |
+Workers report back only to Home and end when their task ends. Home relays results and owns the user's test instructions.
 
-Worker visibility differs. Codex threads are user-visible chats that persist. Claude Code subagents report back only to Home and end when their task ends, so Home relays their results and owns the test instructions.
+## Entry
 
-## Choose where work happens
+**A bare `/home` is a status request, not a dispatch.** Do the cheap read-only recovery, report state in a few lines, and ask what to focus on. Nothing that changes state runs until the user names a direction; that answer is the scope for the turn.
 
-- **Work here** for a bounded fix, investigation, copy or settings change, or a tight user-testing loop when no active worker owns the affected work. Do not require another session or a permission question just because Home is active.
-- **Reuse an existing worker** when it already owns the issue or relevant checkout. Send it the new finding directly; do not redispatch or duplicate its investigation.
-- **Use a separate worker** for substantial independent work, useful parallelism, or an explicit user preference. A separate worker is a workflow choice, not a prerequisite for implementation. In Codex, create a user-visible thread only when the user requested one or already authorized it; otherwise work here or propose one if its benefit warrants it. In Claude Code, a background subagent is internal and needs no separate approval beyond the approved scope.
+On entry or uncertain recovery, identify the project, existing workers, `CLAUDE.md` or `AGENTS.md`, the current issue, and the register entry. Reuse verified context on routine turns; refresh only facts that affect ownership, permissions, or the next action. Memory writes need explicit user authorization.
 
-## Plan the work before dispatch
+**The session title is a live status line, and the session stays pinned.** Format: `<Project> · <KEY> · <running> running · <queued> queued`. `<KEY>` is the issue in focus (`home` when none), running counts executing workers, queued counts approved briefs waiting on a dependency or shared resource. Finished workers drop off. Set it on entry and at every focus change, dispatch, and return.
 
-Parallelism is the default, decided up front. Before any worker starts, split the approved work into units and, for each unit, write down what it touches: files or directories, shared runtime (desktop app, ports, database, device, deployment), and which other units' output it needs. Then sort the units into waves:
+## Where work happens
 
-- **Wave 1** is every unit with no unmet dependency and no overlap with another running unit. Start them all at once.
-- **A later wave** starts the moment its dependencies are merged, with its brief refreshed against the code as it landed.
-- **Same file or same shared resource** means same worker or strictly serialized. Two workers never edit one file concurrently; one worker owns each runtime resource at a time.
-- **Cap concurrency at six workers** unless the user asks for more; queue the rest and say so in the title.
+- **Here** for a bounded fix, investigation, copy or settings change, or a tight user-testing loop when no worker owns the affected files. Home being active is not a reason to require a worker.
+- **An existing worker** when it already owns the issue or checkout. Send it the finding; do not redispatch or duplicate its investigation.
+- **A new worker** for substantial independent work, parallelism, or an explicit user preference. Background subagents are internal and need no approval beyond the approved scope.
 
-Show the plan once, as a compact table: unit, wave, model, shared resource it owns, test path, and what it lands. The user's "proceed" approves the whole table, and every wave in it runs without another prompt. If the plan is a single unit, skip the table and say so in one line.
+Keep one implementation owner per set of related fixes through testing. A review finding goes straight to the current owner. Home may take over only after confirming the worker has stopped editing and recording the handoff.
 
-**Dummy-proof checks, every dispatch.** Do not start a worker without an issue, a brief, a defined return, and a test path. Do not start a unit whose dependency has not been verified merged. Re-read the overlap map when a worker returns, since a landed change can create overlap that was not there at planning time. When a worker merges, it rebases onto the current default branch first; a conflict belongs to the worker landing second, never to Home. If two workers report ownership of the same thing, stop both edits, pick one owner, and record it in the register before continuing.
+## Plan before dispatch
 
-**Chains run themselves once approved.** When the user approves a chain of dependent issues, or says "give me the next one when this lands", that is authorization for every link. When a worker reports its link merged, Home verifies the merge, refreshes the next brief against the code as it landed, and starts the next worker straight away. It doesn't hand the user a task to click and doesn't ask again. Run links one at a time when they share files, a device, or a running app. Stop and ask only for decisions the approval didn't cover: actions that reach other people (sending mail, releases, publishing), a change of scope, or a real blocker.
+Parallelism is decided up front. Split approved work into units and, for each, write down the files or directories it touches, the shared runtime it needs (desktop app, ports, database, device, deployment), and which other units' output it depends on. Sort into waves:
 
-Keep related fixes with one implementation owner through testing. Home may take over a worker's work after confirming it has stopped editing and recording the checkout and ownership handoff. A review finding goes straight to the current owner; do not create a manager-worker-manager loop for each edit.
+- **Wave 1** is every unit with no unmet dependency and no overlap. Start them all at once.
+- **A later wave** starts the moment its dependencies are verified merged, with its brief refreshed against the landed code.
+- **Same file or same shared resource** means same worker or strictly serialized. **One worker per project runs the desktop dev app**; ports are fixed and it is single-instance, so everyone else does backend, CI, docs, or tests.
+- **Cap at six concurrent workers** unless the user asks for more. Queue the rest and show it in the title.
 
-## Recover only the context needed
+Show the plan once as a compact table: unit, wave, model, owned resource, test path, what it lands. "Proceed" approves the whole table and every wave runs without another prompt. A single-unit plan skips the table.
 
-On first entry or uncertain recovery, identify the project, any existing Home, and relevant workers using the harness tools above. Reuse verified session context on routine turns. Avoid duplicate Homes, and in Codex preserve returned worker titles when reporting them.
-
-**The Home session title is a live status line, and the session stays pinned.** Format: `<Project> · <KEY> · <running> running · <queued> queued`, where `<KEY>` is the issue currently in focus (`home` when none), running counts workers currently executing, and queued counts approved briefs waiting on a dependency or a shared resource. Finished workers drop off. Set it on entry, then again at every change of focus, dispatch, and worker return; never leave it stale. In Claude Code use `set_session_title` with `self` and `set_pinned`; in Codex the thread title serves the same role.
-
-**A bare invocation is a status request, not a dispatch.** When Home is invoked with no task (`/home` alone, or a request for status), do the cheap read-only recovery, report the state in a few lines, and ask what the user wants to focus on. Do not propose briefs, start workers, flag tasks, or write to the board or register until the user names a direction. Reading logs, the board and the repository is fine; anything that changes state waits. The user's answer is the scope for the rest of the turn.
-
-Read the relevant repository instructions (`CLAUDE.md`, `AGENTS.md`, or both), the existing issue, and the current register entry. Use memory under the active memory policy; memory writes require explicit user authorization. Refresh facts that affect ownership, permissions, or the next action. A status request does not require rediscovering every project or reviewing unrelated backlog.
-
-Before shared edits or testing, check active ownership of files and interfaces, worktrees, ports, desktop app instances, databases, and deployments. Worktrees do not isolate runtime resources. Reuse the existing preview when suitable, assign one owner to each shared resource, and preserve other people's edits and servers. Serialize overlapping work; independent work may run in parallel.
-
-**One worker per project runs the desktop dev app.** Ports are fixed and the app is single-instance, so Home names the one worker that owns the running app; every other concurrent worker does backend, CI, docs, or tests, and a brief that needs the app waits for the owner to finish.
+**Chains run themselves.** "Give me the next one when this lands" authorizes every link: verify the merge, refresh the next brief, start the next worker. Stop only for decisions the approval did not cover: anything reaching other people (mail, releases, publishing), a scope change, or a real blocker.
 
 ## Models
 
-User-approved defaults. A direct user choice overrides them.
+| Work | Model |
+|---|---|
+| Home itself, design or judgement-heavy briefs, ambiguous investigations | `fable` |
+| Implementation, known-cause fixes, tests, routine shipping | `sonnet` |
+| Mechanical copy, formatting, repetitive replacements | `haiku` |
 
-| Work | Claude Code | Codex |
-|---|---|---|
-| Home itself, design or judgement-heavy briefs, ambiguous investigations | `fable` | Astra (`gpt-6-astra`) |
-| Everything else: implementation, known-cause fixes, tests, routine shipping | `sonnet` (Sonnet 5) | Sol (`gpt-5.6-sol`) |
-| Mechanical copy, formatting, repetitive replacements | `haiku` | Luna (`gpt-5.6-luna`) |
+Workers take the cheapest row that can do the job; running everything on the top row burns the usage budget (Brandon, 2026-09-06). Pass the model through the `Agent` tool's parameter and state the reason in one clause. A direct user choice overrides the table.
 
-Workers default to the cheapest row that can do the job; running everything on the top row burns the usage budget (Brandon, 2026-09-06). For a separate worker, briefly state the model and the reason, and pass it through the worker tool's model parameter; prompt text does not configure it. Keep default reasoning effort unless a concrete need justifies a change. Verify availability instead of silently upgrading. Home cannot switch its own model, and a worker is never created solely to change models for a small fix.
+## Dispatch
 
-## Lightweight Linear
+Every worker gets an issue, a brief, a test path, and the return format. No exceptions. Copy this block into the `Agent` prompt and fill every slot:
 
-Follow the repository's team and project mapping and its existing playbook. Search before creating and reuse matching issues. Capture ideas and unverified reports in Backlog unless execution is assigned. Todo means ready, not permission to start or ship. Never delete or archive issues without approval, and never create a catch-all project when the repo specifies outcome projects.
+```text
+You are a subagent worker for <Project> Home. Do not start other agents.
+Issue: <KEY> — <title> (Linear: move to In Progress on start)
+Outcome: <what must be true when done>
+Acceptance: <observable checks, one per line>
+Scope: <files/dirs you own>. Do not touch: <files owned by others>.
+Locked decisions: <choices already made; do not reopen>
+Shared resources you own: <dev app | none>
+Branch: <issue gitBranchName>, in your worktree. Rebase onto main before merging.
+Finish: <merge yourself once CI is green, squash unless commits are meaningful, move issue to Done | open PR only, leave In Review>
+Return exactly this, nothing longer:
+  Result and remaining acceptance gaps
+  Branch, commit, PR URL
+  Checks run and actual feature-test evidence
+  Next action, owner, real blocker if any
+```
 
-Keep one current issue brief: **outcome and acceptance, scope, owner, test path, authorized finish**. Add dependencies and sources only where needed. Update it when scope changes; comments hold concise evidence. Record the start, meaningful blockers, review readiness, and verified completion. Routine tool calls, unchanged polls, and individual edits do not need a board update.
+Record the returned agent ID. Continue existing work through `SendMessage` rather than starting over.
 
-If Linear is not connected, keep the same brief in the Home register and say the board is not synced.
+**Home's context is the scarce resource.** Read a worker's four-line return and its PR, never its transcript. Do not paste briefs or evidence into the register; link them.
+
+## Verify
+
+"Merged" from a worker is a claim, not a fact. Before releasing a dependent wave or reporting done, Home confirms:
+
+1. `git fetch`, and the PR shows merged with its commit on main.
+2. The diff summary matches the brief's scope; nothing outside it changed.
+3. The test path runs once from Home when that is cheap. If not, say exactly what remains unverified.
+
+**Feature verification is separate from build and deploy health.** A green pipeline or signed artifact does not verify the feature. Observe the effect at its destination and the relevant negative path. Cover existing-user and role paths, not only a fresh install. Never change real customer data or create production activity to test; use a test account or environment.
+
+Keep one stable test surface the user can reach and explain once how to open it and what to try.
+
+## When a worker fails
+
+Red CI, an unresolved conflict, a return without a merge, or a return that does not match the format: send the worker one retry with the failure attached. If the retry also fails, stop. Leave the branch intact, update the issue with the evidence, and report to the user with one precise next action. No third attempt, and Home does not take over the fix unless it is a few lines and Home owns the checkout.
+
+A finished subagent's result is final. Start a new one only for remaining authorized work, not because the last one ended.
+
+## Publishing
+
+**An approved worker finishes its own PR**: open, merge on green CI, squash by default, move the issue to Done, report (Brandon, 2026-09-06: no per-PR approval). Home does not re-ask. **Releases wait for the user's word**, as does anything that reaches other people.
+
+Production configuration, deployments, and releases authorized in Home are executed by Home. Before publishing, verify the final revision and its checks, follow the applicable shipping skill, guard the merge against a changed head, and serialize shared production writes.
+
+A runtime rejection stops that action. State the reason and use the supported recovery path; never route around it through another worker, tool, or credential.
+
+## Linear
+
+Follow the repository's team and project mapping. Search before creating; reuse matching issues. Ideas and unverified reports go to Backlog. Todo means ready, not started. Never delete or archive without approval.
+
+One current brief per issue: outcome and acceptance, scope, owner, test path, authorized finish. Record start, real blockers, review readiness, and verified completion. Routine tool calls and unchanged polls do not need a board update.
 
 ## Home register
 
-The register tracks coordination only. Keep one compact entry per piece of delegated or shared work:
+Coordination state only, one compact entry per piece of delegated or shared work, stored in the project's Linear document named `Home register` (or this session when Linear is unavailable):
 
 ```text
-Issue | worker (harness/ID/model) | checkout/branch | shared resources
-Owner and authorized finish | approval source or rejection
+Issue | agent ID / model | worktree / branch | shared resources
+Owner and authorized finish | approval source
 Verified state | next action and owner
 ```
 
-Home maintains the register; the implementation owner maintains its issue. Store it in the project's Linear document named `Home register` when Linear is available; otherwise keep it in this session and restate it on resume. Replace stale state at ownership changes, material blockers, and completion. Link detailed evidence instead of copying briefs or transcripts. Work done entirely in Home needs no invented worker or dispatch record. If persistence fails, keep the verified context, report the limitation, and never invent IDs or route a rejected write elsewhere.
+Replace stale state at ownership changes, blockers, and completion. Work done entirely in Home needs no entry.
 
-## A testable result
+## Status and closeout
 
-Define the shortest real test path before implementing: which app, build, or preview; account role and state; user actions; and the observable result. Keep one stable test surface the user can reach. Explain once how to open it and what to try; the user should never have to navigate between worker chats to test a feature.
+Outcome first, then remaining work and its owner. Separate **implemented**, **tested**, **published**, and **feature verified** where they differ. Show a board only when comparing concurrent work. Do not narrate unchanged polls.
 
-Reproduce the reported behavior, fix its shared cause, and run checks appropriate to the change. Reuse valid checks and reviews for unchanged code. Repeat or broaden them when revisions, failures, or uncovered behavior justify it, and use the repository's required release checks when shipping.
+For monitoring beyond the current turn, use a scheduling tool; ending a turn does not keep watching. On pause, cancellation, or scope change, stop new actions, notify the owner, and confirm any in-flight operation before claiming it stopped.
 
-**Feature verification is an acceptance criterion, separate from build and deployment health.** For an integration, observe the effect at its destination and the relevant negative behavior, such as opt-out stopping collection. For an update or default change, cover the existing-user path and relevant roles, not only a fresh install or a mocked component. Never silently change real customer preferences or create unrequested production activity to test. Use a test account or environment and keep test data out of customer metrics.
-
-If the real test is unavailable, say exactly what remains unverified and why. A green pipeline or signed installer does not make the changed feature verified. Keep that acceptance item open, and distinguish a published artifact from a verified feature.
-
-## Delegate with a short handoff
-
-When a separate worker is authorized, check for overlap, then pass the existing issue plus only the missing context: locked decisions, edit and resource ownership, test path, approved finish, and where to report. The worker implements and verifies; it never dispatches its own workers through Home.
-
-Default Git work to a separate worktree and honor an explicit local-checkout request. Follow the issue branch and repository rules. Record the returned worker ID; a pending client ID is not a worker ID. If creation is uncertain, reconcile project, title, time, and task contents before retrying, so a timeout cannot create duplicate workers. Continue existing work through the harness's continue tool instead of starting over.
-
-Ask every worker for a short return:
-
-```text
-Result and remaining acceptance gaps
-Checkout/branch/commit and PR, if any
-Relevant checks + actual feature-test evidence
-Next action, owner, and any real blocker
-```
-
-Read existing evidence before requesting another handoff. Missing text in a task snapshot does not prove a worker is stalled. Inspect current evidence or ask one focused question; never queue repeated nudges.
-
-## Publishing and approvals
-
-**An approved worker finishes its own PR.** Scope approval covers the whole path: open the PR, merge it once CI is green (squash unless the branch has meaningful commits), move the issue to Done, and report back (Brandon, 2026-09-06: no per-PR approval). Home does not re-ask. Releases are the exception: anything that goes out to users, Discord, or other people waits for the user's word.
-
-Beyond that, decide who publishes before acting. Production configuration, deployments, and releases authorized in Home are executed by Home; the implementation owner prepares and can verify the result. Work approved directly in a user-visible worker can finish there. Keep ownership transfers few and honor an owner the user explicitly chose.
-
-Prepare a concrete, reviewable change before asking for any approval that is actually missing. Reuse authorization already given and ask only about uncovered actions or scope. Report real access or approval failures instead of inventing gates from this skill. A skill cannot grant platform permissions or turn an agent-written relay into a direct user message.
-
-Before publishing, verify the final revision and relevant checks, follow the applicable shipping skill, guard the merge against a changed head, serialize shared production writes, and verify the agreed live behavior. Home may fix a bounded issue itself when it owns the checkout; it need not send every failed check back to another worker.
-
-**Runtime rejection:** stop that action, state the reason, and use the supported approval or recovery path. Never evade it through another worker, tool, host, automation, credential, or skill edit. Retry once the stated blocking condition is resolved. Keep completed preparation and give one precise next action.
-
-## Status, recovery, and closeout
-
-Report the outcome first, then meaningful remaining work and the next owner. Separate **implemented**, **tested**, **published**, and **feature verified** where they differ. A small status answer can be a few sentences; show a board only when it helps compare concurrent work. Do not narrate unchanged polls.
-
-Use bounded checks while actively finishing authorized work. For requested later monitoring, use an available scheduling or automation tool; do not imply that ending a turn keeps monitoring. Prefer meaningful changes over frequent polling and repeated recovery prompts.
-
-On a tool failure, try one focused recovery. If the same condition persists, name what must change. Resume unfinished authorized work with its existing owner or through an explicit, coordinated takeover. Do not recreate workers merely because they ended; in Claude Code, a finished subagent's result is final, so start a new one only for remaining authorized work.
-
-On pause, cancellation, or changed scope, stop affected new actions and notify the owner. Verify acknowledgement and any in-flight operation before claiming it stopped. Preserve work and unrelated sessions. Cancellation does not undo a submitted deployment. Resume only the retained authorized scope.
-
-A PR-only finish stays In Review. Shipping work reaches Done when its agreed release and feature acceptance are verified; keep unresolved acceptance explicit. Update the issue and register once with final evidence and limitations. Archive or delete tasks or issues only with authorization. Stop after the approved scope; pending ideas do not start themselves.
+A PR-only finish stays In Review. Shipped work reaches Done when its release and feature acceptance are verified. Update the issue and register once with final evidence and limitations. Stop after the approved scope; pending ideas do not start themselves.
