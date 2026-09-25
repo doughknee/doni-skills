@@ -29,6 +29,19 @@ Worker visibility differs. Codex threads are user-visible chats that persist. Cl
 - **Reuse an existing worker** when it already owns the issue or relevant checkout. Send it the new finding directly; do not redispatch or duplicate its investigation.
 - **Use a separate worker** for substantial independent work, useful parallelism, or an explicit user preference. A separate worker is a workflow choice, not a prerequisite for implementation. In Codex, create a user-visible thread only when the user requested one or already authorized it; otherwise work here or propose one if its benefit warrants it. In Claude Code, a background subagent is internal and needs no separate approval beyond the approved scope.
 
+## Plan the work before dispatch
+
+Parallelism is the default, decided up front. Before any worker starts, split the approved work into units and, for each unit, write down what it touches: files or directories, shared runtime (desktop app, ports, database, device, deployment), and which other units' output it needs. Then sort the units into waves:
+
+- **Wave 1** is every unit with no unmet dependency and no overlap with another running unit. Start them all at once.
+- **A later wave** starts the moment its dependencies are merged, with its brief refreshed against the code as it landed.
+- **Same file or same shared resource** means same worker or strictly serialized. Two workers never edit one file concurrently; one worker owns each runtime resource at a time.
+- **Cap concurrency at four workers** unless the user asks for more; queue the rest and say so in the title.
+
+Show the plan once, as a compact table: unit, wave, model, shared resource it owns, test path, and what it lands. The user's "proceed" approves the whole table, and every wave in it runs without another prompt. If the plan is a single unit, skip the table and say so in one line.
+
+**Dummy-proof checks, every dispatch.** Do not start a worker without an issue, a brief, a defined return, and a test path. Do not start a unit whose dependency has not been verified merged. Re-read the overlap map when a worker returns, since a landed change can create overlap that was not there at planning time. When a worker merges, it rebases onto the current default branch first; a conflict belongs to the worker landing second, never to Home. If two workers report ownership of the same thing, stop both edits, pick one owner, and record it in the register before continuing.
+
 **Chains run themselves once approved.** When the user approves a chain of dependent issues, or says "give me the next one when this lands", that is authorization for every link. When a worker reports its link merged, Home verifies the merge, refreshes the next brief against the code as it landed, and starts the next worker straight away. It doesn't hand the user a task to click and doesn't ask again. Run links one at a time when they share files, a device, or a running app. Stop and ask only for decisions the approval didn't cover: actions that reach other people (sending mail, releases, publishing), a change of scope, or a real blocker.
 
 Keep related fixes with one implementation owner through testing. Home may take over a worker's work after confirming it has stopped editing and recording the checkout and ownership handoff. A review finding goes straight to the current owner; do not create a manager-worker-manager loop for each edit.
@@ -37,7 +50,7 @@ Keep related fixes with one implementation owner through testing. Home may take 
 
 On first entry or uncertain recovery, identify the project, any existing Home, and relevant workers using the harness tools above. Reuse verified session context on routine turns. Avoid duplicate Homes, and in Codex preserve returned worker titles when reporting them.
 
-**The Home session title is a live status line, and the session stays pinned.** Format: `<Project> · <KEY> · <active>/<total> workers`, where `<KEY>` is the issue currently in focus (`home` when none) and the counts are this session's workers still running over all workers it has started. Set it on entry, then again at every change of focus, dispatch, and worker return; never leave it stale. In Claude Code use `set_session_title` with `self` and `set_pinned`; in Codex the thread title serves the same role.
+**The Home session title is a live status line, and the session stays pinned.** Format: `<Project> · <KEY> · <running> running · <queued> queued`, where `<KEY>` is the issue currently in focus (`home` when none), running counts workers currently executing, and queued counts approved briefs waiting on a dependency or a shared resource. Finished workers drop off. Set it on entry, then again at every change of focus, dispatch, and worker return; never leave it stale. In Claude Code use `set_session_title` with `self` and `set_pinned`; in Codex the thread title serves the same role.
 
 **A bare invocation is a status request, not a dispatch.** When Home is invoked with no task (`/home` alone, or a request for status), do the cheap read-only recovery, report the state in a few lines, and ask what the user wants to focus on. Do not propose briefs, start workers, flag tasks, or write to the board or register until the user names a direction. Reading logs, the board and the repository is fine; anything that changes state waits. The user's answer is the scope for the rest of the turn.
 
