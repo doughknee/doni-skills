@@ -7,6 +7,7 @@ Doni's skills, packaged as a Claude Code plugin marketplace.
 | Plugin | What it does | Run it |
 |---|---|---|
 | `home` | Project home base: keeps projects moving, coordinates workers, tracks work in Linear, and ships verified results. | `/home:home` |
+| `home` → `linear` | Linear as the board: first-run project setup, issue lifecycle, brief format. Also triggers on its own when an issue key is mentioned. | `/home:linear` |
 | `home` → `board` | Linear-shaped board in `.home/` for repos without the Linear connector. Home switches to it after the opt-out phrase. | `/home:board` |
 
 ## Install
@@ -28,6 +29,7 @@ Open `/plugin`, go to **Marketplaces**, select `doni-skills`, and choose **Enabl
 .claude-plugin/marketplace.json        marketplace catalog
 plugins/home/.claude-plugin/plugin.json   plugin manifest
 plugins/home/skills/home/SKILL.md         the home skill
+plugins/home/skills/linear/SKILL.md       Linear as the board
 plugins/home/skills/board/SKILL.md        the local board fallback
 ```
 
