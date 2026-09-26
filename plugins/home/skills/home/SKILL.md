@@ -87,24 +87,19 @@ Show the plan once as a compact table. "Proceed" approves the whole table and ev
 
 ## Dispatch
 
-Every worker gets an issue, a brief, a test path, and the return format. No exceptions. Copy this block into the `Agent` prompt and fill every slot:
+Every worker gets an issue, a brief, a test path, and the `worker` skill, which carries the rules and return format common to every worker. No exceptions. Copy this block into the `Agent` prompt and fill every slot:
 
 ```text
-You are a subagent worker for <Project> Home. Do not start other agents.
-Issue: <KEY> — <title> (Linear: move to In Progress on start; under the board skill Home does this, do not edit .home/)
+You are a subagent worker for <Project> Home. Load the home:worker skill first (Skill tool) and follow it.
+Issue: <KEY> — <title>
 Outcome: <what must be true when done>
 Acceptance: <observable checks, one per line>
 Scope: <files/dirs you own>. Do not touch: <files owned by others>.
 Locked decisions: <choices already made; do not reopen>
 Shared resources you own: <dev app | none>
-Branch: <issue gitBranchName>. Your worktree already exists; check out this branch inside it. Never create, remove, or prune worktrees, and never run git in the main checkout. Rebase onto main before merging.
-Time cap: <N> minutes. At the cap, stop, ship what is verified, and list the rest as not verified.
-Finish: <merge yourself once CI is green, squash unless commits are meaningful, move issue to Done | open PR only, leave In Review>
-Return exactly this, nothing longer:
-  Result and remaining acceptance gaps
-  Branch, commit, PR URL
-  Checks run and actual feature-test evidence
-  Next action, owner, real blocker if any
+Branch: <issue gitBranchName>
+Time cap: <N> minutes
+Finish: <merge | PR only>
 ```
 
 Pass `isolation: "worktree"` on the `Agent` call for any unit that edits the repo; the harness makes the worktree and Home removes it after verification. Workers that make their own worktrees, or remove them, have deregistered Home's checkout before. Record the returned agent ID. Continue existing work through `SendMessage` rather than starting over.

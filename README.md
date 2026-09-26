@@ -9,6 +9,7 @@ Doni's skills, packaged as a Claude Code plugin marketplace.
 | `home` | Project home base: keeps projects moving, coordinates workers, tracks work in Linear, and ships verified results. | `/home:home` |
 | `home` → `linear` | Linear as the board: first-run project setup, issue lifecycle, brief format. Also triggers on its own when an issue key is mentioned. | `/home:linear` |
 | `home` → `board` | Linear-shaped board in `.home/` for repos without the Linear connector. Home switches to it after the opt-out phrase. | `/home:board` |
+| `home` → `worker` | The rules every Home subagent worker follows: worktree and git limits, finish, time cap, return format. Workers load it first from their brief. | `/home:worker` |
 
 ## Install
 
@@ -31,6 +32,7 @@ plugins/home/.claude-plugin/plugin.json   plugin manifest
 plugins/home/skills/home/SKILL.md         the home skill
 plugins/home/skills/linear/SKILL.md       Linear as the board
 plugins/home/skills/board/SKILL.md        the local board fallback
+plugins/home/skills/worker/SKILL.md       rules for every subagent worker
 ```
 
 ## Working on the skills
