@@ -158,4 +158,6 @@ Outcome first, then remaining work and its owner. Separate **implemented**, **te
 
 For monitoring beyond the current turn, use a scheduling tool; ending a turn does not keep watching. On pause, cancellation, or scope change, stop new actions, notify the owner, and confirm any in-flight operation before claiming it stopped.
 
+**A lesson learned mid-run has one home.** If it is about this project (a device limit, a check every worker on this codebase must run, a port), write it into the repo's `CLAUDE.md` under a `## Home` heading, where the next Home session and every worker read it. If it is about how Home itself should behave, tell the user in one line and leave it out of the repo; the skill changes by its own commits, not from inside a session.
+
 A PR-only finish stays In Review. Shipped work reaches Done when its release and feature acceptance are verified. Update the issue and register once with final evidence and limitations. Stop after the approved scope; pending ideas do not start themselves.
