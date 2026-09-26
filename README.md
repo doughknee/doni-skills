@@ -33,4 +33,13 @@ plugins/home/skills/linear/SKILL.md       Linear as the board
 plugins/home/skills/board/SKILL.md        the local board fallback
 ```
 
-To change the skill, edit `plugins/home/skills/home/SKILL.md` and push.
+## Working on the skills
+
+Do not edit the marketplace copy under `~/.claude/plugins/marketplaces/doni-skills`; anything inside `~/.claude` prompts on every file edit and drags worker worktrees in there too. Work in a normal clone (for example `~/Documents/.code/doni-skills`), push to `main`, then refresh the installed copy:
+
+```
+claude plugin marketplace update doni-skills
+claude plugin update home@doni-skills
+```
+
+and restart the app.
