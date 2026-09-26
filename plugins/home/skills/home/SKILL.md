@@ -29,7 +29,7 @@ Workers report back only to Home and end when their task ends. Home relays resul
 
 On entry or uncertain recovery, identify the project, existing workers, `CLAUDE.md` or `AGENTS.md`, the current issue, and the register entry. Reuse verified context on routine turns; refresh only facts that affect ownership, permissions, or the next action. Memory writes need explicit user authorization.
 
-**Workers do not survive a restart; their work does.** On entry, `git worktree list` and `gh pr list --author @me` reveal orphans. A worktree with commits and no PR is resumable work. An open unmerged PR needs its CI checked and its finish completed. Re-plan both as units with new workers. Never duplicate them and never delete them.
+**Workers do not survive a restart; their work does.** On entry, `git worktree list` and `gh pr list --author @me` reveal orphans. A worktree with commits and no PR is resumable work. An open unmerged PR needs its CI checked and its finish completed. Re-plan both as units with new workers. Never duplicate them and never delete them. A worktree whose branch is already merged is stale: remove it and delete the branch on entry, without being asked.
 
 **The session title is a live status line, and the session stays pinned.** Format: `<Project> · <KEY> · <running> running · <queued> queued`. `<KEY>` is the issue in focus (`home` when none), running counts executing workers, queued counts approved briefs waiting on a dependency or shared resource. Finished workers drop off. Set it on entry and at every focus change, dispatch, and return.
 
@@ -47,7 +47,7 @@ Parallelism is decided up front. Split approved work into units and, for each, w
 
 - **Wave 1** is every unit with no unmet dependency and no overlap. Start them all at once.
 - **A later wave** starts the moment its dependencies are verified merged, with its brief refreshed against the landed code.
-- **Same file or same shared resource** means same worker or strictly serialized. **One worker per project runs the desktop dev app**; ports are fixed and it is single-instance, so everyone else does backend, CI, docs, or tests.
+- **Same file or same shared resource** means same worker or strictly serialized. **One worker per project runs the desktop dev app**; ports are fixed and it is single-instance, so everyone else does backend, CI, docs, or tests. Emulators and physical devices are slots too: two device workers at a time unless the repo's `CLAUDE.md` says otherwise, because a third emulator beside Gradle has starved the host before.
 - **Cap at six concurrent workers** unless the user asks for more. Queue the rest and show it in the title.
 
 **Acceptance must be observable.** If a unit's acceptance cannot be written as checks a worker can run or the user can see, ask one focused question before planning. "Works correctly" is not acceptance.
@@ -66,11 +66,12 @@ Show the plan once as a compact table. "Proceed" approves the whole table and ev
 
 | Work | Model |
 |---|---|
-| Home itself, design or judgement-heavy briefs, ambiguous investigations | `fable` |
-| Implementation, known-cause fixes, tests, routine shipping | `sonnet` |
+| Home itself | `fable` |
+| A brief whose core is design judgement or an open-ended investigation | `opus` |
+| Implementation, known-cause fixes, tests, routine shipping, screens built from a mockup | `sonnet` |
 | Mechanical copy, formatting, repetitive replacements | `haiku` |
 
-Workers take the cheapest row that can do the job; running everything on the top row burns the usage budget (Brandon, 2026-09-06). Pass the model through the `Agent` tool's parameter and state the reason in one clause. A direct user choice overrides the table.
+`sonnet` is the default. In any wave, more than one worker in three on `opus` needs a stated reason in the plan table; "it touches UI" is not one. Running everything on the top rows burns the usage budget (Brandon, 2026-09-06). Pass the model through the `Agent` tool's parameter and state the reason in one clause. A direct user choice overrides the table.
 
 ## Dispatch
 
@@ -84,7 +85,8 @@ Acceptance: <observable checks, one per line>
 Scope: <files/dirs you own>. Do not touch: <files owned by others>.
 Locked decisions: <choices already made; do not reopen>
 Shared resources you own: <dev app | none>
-Branch: <issue gitBranchName>, in your worktree. Rebase onto main before merging.
+Branch: <issue gitBranchName>. Your worktree already exists; check out this branch inside it. Never create, remove, or prune worktrees, and never run git in the main checkout. Rebase onto main before merging.
+Time cap: <N> minutes. At the cap, stop, ship what is verified, and list the rest as not verified.
 Finish: <merge yourself once CI is green, squash unless commits are meaningful, move issue to Done | open PR only, leave In Review>
 Return exactly this, nothing longer:
   Result and remaining acceptance gaps
@@ -93,7 +95,7 @@ Return exactly this, nothing longer:
   Next action, owner, real blocker if any
 ```
 
-Record the returned agent ID. Continue existing work through `SendMessage` rather than starting over.
+Pass `isolation: "worktree"` on the `Agent` call for any unit that edits the repo; the harness makes the worktree and Home removes it after verification. Workers that make their own worktrees, or remove them, have deregistered Home's checkout before. Record the returned agent ID. Continue existing work through `SendMessage` rather than starting over.
 
 **Home's context is the scarce resource.** Read a worker's four-line return and its PR, never its transcript. Do not paste briefs or evidence into the register; link them.
 
@@ -108,11 +110,13 @@ Record the returned agent ID. Continue existing work through `SendMessage` rathe
 
 **Feature verification is separate from build and deploy health.** A green pipeline or signed artifact does not verify the feature. Observe the effect at its destination and the relevant negative path. Cover existing-user and role paths, not only a fresh install. Never change real customer data or create production activity to test; use a test account or environment.
 
-Keep one stable test surface the user can reach and explain once how to open it and what to try.
+Keep one stable test surface the user can reach and explain once how to open it and what to try. A build installed on the user's own device is the build users get, meaning release or its equivalent; if only a debug build exists, say so at install time, because a debug build on a phone has been reported as a performance regression before.
 
 ## When a worker fails
 
 Red CI, an unresolved conflict, a return without a merge, or a return that does not match the format: send the worker one retry with the failure attached. If the retry also fails, stop. Leave the branch intact, update the issue with the evidence, and report to the user with one precise next action. No third attempt, and Home does not take over the fix unless it is a few lines and Home owns the checkout.
+
+**A notification marked interim is not a return.** A worker that stops with background work of its own still running will notify again. Do not act on it, but do not wait on it either: if a worker passes its time cap, or has sent two interim notifications in a row, send it one message with the cap restated and check the actual state yourself (`gh pr view`, the device, the log). Tell the user what is blocking in one line rather than reporting "in progress" twice.
 
 A finished subagent's result is final. Start a new one only for remaining authorized work, not because the last one ended.
 
