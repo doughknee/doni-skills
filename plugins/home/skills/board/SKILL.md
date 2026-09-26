@@ -12,7 +12,9 @@ One directory, `.home/`, committed with the code. It gives Home the same objects
 ```text
 .home/
   board.md          generated index, one line per open issue
+  brief.md          the Home brief (project memory, see the linear skill)
   register.md       the Home register
+  updates.md        status updates, newest first, one dated block per closeout
   issues/
     MYP-1.md        one file per issue
     MYP-2.md
@@ -27,6 +29,7 @@ The key prefix is the repo name's first three letters, uppercased. Numbers are s
 key: MYP-2
 title: Sync API retries on 5xx
 status: Todo
+milestone: Batch 3 sync
 created: 2026-09-25
 owner:
 branch: myp-2-sync-retry
@@ -58,7 +61,10 @@ Statuses are exactly `Backlog`, `Todo`, `In Progress`, `In Review`, `Done`, `Can
 | Comment | Append a dated line under `## Log` |
 | Read brief | The `## Brief` section |
 | Board view | Regenerate `board.md`: one line per issue not Done or Canceled, grouped by status |
-| Home register | `.home/register.md`, same format as in the home skill |
+| Home brief and register | `.home/brief.md`, `.home/register.md` |
+| Milestone per batch | `milestone:` in each issue's frontmatter; `board.md` groups by it |
+| Closeout | Prepend a dated block to `.home/updates.md` with health: on track, at risk, or off track |
+| PR on issue | `pr:` in the frontmatter |
 
 ## One writer, one place
 

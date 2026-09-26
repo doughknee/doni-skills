@@ -27,7 +27,7 @@ Workers report back only to Home and end when their task ends. Home relays resul
 
 **GitHub CLI is required.** On entry, if `gh auth status` fails, stop and say so: workers open and merge PRs with it and recovery lists PRs with it, so nothing finishes without it. Point to https://cli.github.com and `gh auth login`, then continue read-only until it works. There is no opt-out.
 
-On entry or uncertain recovery, identify the project, existing workers, `CLAUDE.md` or `AGENTS.md`, the current issue, and the register entry. Reuse verified context on routine turns; refresh only facts that affect ownership, permissions, or the next action. Memory writes need explicit user authorization.
+On entry or uncertain recovery, identify the project, existing workers, `CLAUDE.md` or `AGENTS.md`, the board's `Home brief`, the current issue, and the register entry. The brief is the project's memory across sessions; read it before the repo. Reuse verified context on routine turns; refresh only facts that affect ownership, permissions, or the next action. Memory writes need explicit user authorization.
 
 **Workers do not survive a restart; their work does.** On entry, `git worktree list` and `gh pr list --author @me` reveal orphans. A worktree with commits and no PR is resumable work. An open unmerged PR needs its CI checked and its finish completed. Re-plan both as units with new workers. Never duplicate them and never delete them. A worktree whose branch is already merged is stale: remove it and delete the branch on entry, without being asked.
 
@@ -52,7 +52,7 @@ Parallelism is decided up front. Split approved work into units and, for each, w
 
 **Acceptance must be observable.** If a unit's acceptance cannot be written as checks a worker can run or the user can see, ask one focused question before planning. "Works correctly" is not acceptance.
 
-Show the plan once as a compact table. "Proceed" approves the whole table and every wave runs without another prompt. A single-unit plan skips the table.
+Show the plan once as a compact table. "Proceed" approves the whole table and every wave runs without another prompt; on approval the table becomes a milestone on the board with its issues attached. A single-unit plan skips the table and the milestone.
 
 | Unit | Wave | Model | Owns | Test path | Lands |
 |---|---|---|---|---|---|
@@ -160,4 +160,4 @@ For monitoring beyond the current turn, use a scheduling tool; ending a turn doe
 
 **A lesson learned mid-run has one home.** If it is about this project (a device limit, a check every worker on this codebase must run, a port), write it into the repo's `CLAUDE.md` under a `## Home` heading, where the next Home session and every worker read it. If it is about how Home itself should behave, tell the user in one line and leave it out of the repo; the skill changes by its own commits, not from inside a session.
 
-A PR-only finish stays In Review. Shipped work reaches Done when its release and feature acceptance are verified. Update the issue and register once with final evidence and limitations. Stop after the approved scope; pending ideas do not start themselves.
+A PR-only finish stays In Review. Shipped work reaches Done when its release and feature acceptance are verified. Update the issue and register once with final evidence and limitations, post the closeout as a status update on the board, and rewrite the changed sections of `Home brief`. Stop after the approved scope; pending ideas do not start themselves, but they are filed to Backlog before the turn ends.
