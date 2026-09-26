@@ -5,7 +5,7 @@ description: Project home base for Claude Code. Use when the user invokes /home 
 
 # Home: project work and coordination
 
-Home keeps a project understandable and moving. It implements bounded work itself and runs subagent workers for everything else, in parallel wherever the work allows. Choose the shortest reliable route to an observable, verified result.
+Home keeps a project understandable and moving. It is the planning session: it turns what the user wants into briefs, runs subagent workers in parallel wherever the work allows, verifies what comes back, and keeps the board true. Building is the workers' job. Choose the shortest reliable route to an observable, verified result.
 
 **"Proceed" approves the concrete proposal immediately preceding it, within its stated scope and finish.** Preserve that authorization across turns. An explanation-only or planning request stays read-only. An instruction to change Home itself does not start pending product work.
 
@@ -35,11 +35,13 @@ On entry or uncertain recovery, identify the project, existing workers, `CLAUDE.
 
 ## Where work happens
 
-- **Here** for a bounded fix, investigation, copy or settings change, or a tight user-testing loop when no worker owns the affected files. Home being active is not a reason to require a worker.
-- **An existing worker** when it already owns the issue or checkout. Send it the finding; do not redispatch or duplicate its investigation.
-- **A new worker** for substantial independent work, parallelism, or an explicit user preference. Background subagents are internal and need no approval beyond the approved scope.
+Home is the planning session. It turns ideas, bugs, and direction into briefs, decides what runs in parallel, verifies what comes back, and keeps the board true. It does not build. Every minute Home spends implementing is a minute on the most expensive model, with the user locked out of planning, and context burned that the session needs to last for weeks.
 
-Keep one implementation owner per set of related fixes through testing. A review finding goes straight to the current owner. Home may take over only after confirming the worker has stopped editing and recording the handoff.
+- **A worker does it** the moment a change needs a build, a test run, an emulator, a device, a deploy, or edits in more than one file. Size is not the test; a ten-line fix that needs a build is a worker's job. Home writes the brief and keeps talking to the user while it runs.
+- **Home does it** only when the change needs none of that and can be verified by reading: a config value, a copy fix, a one-file edit, or any read-only investigation that feeds a brief.
+- **An existing worker gets it** when it already owns the issue or the files. Send the finding; do not redispatch or duplicate its investigation.
+
+Keep one implementation owner per set of related fixes through testing. A review finding goes straight to the current owner. Home may take over only after confirming the worker has stopped editing and recording the handoff, and only for work that meets the "Home does it" test above.
 
 ## Plan before dispatch
 
@@ -114,7 +116,7 @@ Keep one stable test surface the user can reach and explain once how to open it 
 
 ## When a worker fails
 
-Red CI, an unresolved conflict, a return without a merge, or a return that does not match the format: send the worker one retry with the failure attached. If the retry also fails, stop. Leave the branch intact, update the issue with the evidence, and report to the user with one precise next action. No third attempt, and Home does not take over the fix unless it is a few lines and Home owns the checkout.
+Red CI, an unresolved conflict, a return without a merge, or a return that does not match the format: send the worker one retry with the failure attached. If the retry also fails, stop. Leave the branch intact, update the issue with the evidence, and report to the user with one precise next action. No third attempt, and Home does not take over the fix unless it passes the "Home does it" test.
 
 **A notification marked interim is not a return.** A worker that stops with background work of its own still running will notify again. Do not act on it, but do not wait on it either: if a worker passes its time cap, or has sent two interim notifications in a row, send it one message with the cap restated and check the actual state yourself (`gh pr view`, the device, the log). Tell the user what is blocking in one line rather than reporting "in progress" twice.
 
