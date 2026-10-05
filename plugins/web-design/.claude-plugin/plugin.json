@@ -1,7 +1,6 @@
 {
   "name": "web-design",
   "description": "Routes one brief to one of 40 named web design aesthetics against one of 9 site contexts and returns measured design tokens, component CSS, and a preview page.",
-  "version": "0.1.0",
   "author": {
     "name": "Doni",
     "url": "https://github.com/doughknee"
