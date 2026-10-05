@@ -10,12 +10,14 @@ Doni's skills, packaged as a Claude Code plugin marketplace.
 | `home` → `linear` | Linear as the board: first-run project setup, issue lifecycle, brief format. Also triggers on its own when an issue key is mentioned. | `/home:linear` |
 | `home` → `board` | Linear-shaped board in `.home/` for repos without the Linear connector. Home switches to it after the opt-out phrase. | `/home:board` |
 | `home` → `worker` | The rules every Home subagent worker follows: worktree and git limits, finish, time cap, return format. Workers load it first from their brief. | `/home:worker` |
+| `web-design` | Routes one brief to one of 40 named web design aesthetics against one of 9 site contexts (dashboard, blog, store, etc.) and returns measured design tokens, component CSS, and a preview page. Seven aesthetics ship with tokens measured from live reference sites. | `/web-design:web-design` |
 
 ## Install
 
 ```
 /plugin marketplace add doughknee/doni-skills
 /plugin install home@doni-skills
+/plugin install web-design@doni-skills
 ```
 
 ## Get updates
@@ -33,6 +35,10 @@ plugins/home/skills/home/SKILL.md         the home skill
 plugins/home/skills/linear/SKILL.md       Linear as the board
 plugins/home/skills/board/SKILL.md        the local board fallback
 plugins/home/skills/worker/SKILL.md       rules for every subagent worker
+plugins/web-design/.claude-plugin/plugin.json          plugin manifest
+plugins/web-design/skills/web-design/SKILL.md          the router
+plugins/web-design/skills/web-design/references/       aesthetics/ (40-entry index, recipes) and contexts/ (9 site types)
+plugins/web-design/skills/web-design/evals/briefs.json routing test briefs
 ```
 
 ## Working on the skills
@@ -42,6 +48,7 @@ Do not edit the marketplace copy under `~/.claude/plugins/marketplaces/doni-skil
 ```
 claude plugin marketplace update doni-skills
 claude plugin update home@doni-skills
+claude plugin update web-design@doni-skills
 ```
 
 and restart the app.

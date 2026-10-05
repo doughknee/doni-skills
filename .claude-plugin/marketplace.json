@@ -10,6 +10,11 @@
       "name": "home",
       "source": "./plugins/home",
       "description": "Project home base: keeps projects moving, coordinates workers, tracks work in Linear, and ships verified results."
+    },
+    {
+      "name": "web-design",
+      "source": "./plugins/web-design",
+      "description": "Routes one brief to one of 40 named web design aesthetics against one of 9 site contexts and returns measured design tokens, component CSS, and a preview page."
     }
   ]
 }

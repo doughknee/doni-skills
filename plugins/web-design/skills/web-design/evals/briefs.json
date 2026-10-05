@@ -1,0 +1,22 @@
+{
+  "description": "Routing evals. Each brief has one expected context and one expected aesthetic slug. Run by giving the brief to Claude with the web-design skill loaded and checking the first line of the reply. Target: 15 of 17 correct, and all five silent briefs (13-17) must pass. A miss means _index.md or a context file needs sharpening.",
+  "briefs": [
+    { "id": 1,  "brief": "Landing page for a Linear competitor, we do issue tracking for hardware teams.", "context": "marketing", "slug": "dark-saas", "why": "Router rule 1: named reference company." },
+    { "id": 2,  "brief": "Blog for a woodworking shop in Vermont. Mostly long posts about joinery with photos.", "context": "blog", "slug": "scandinavian", "why": "Warm craft subject, photo-led but reading-first, blog allow-list." },
+    { "id": 3,  "brief": "Internal analytics dashboard for a logistics company. Lots of tables.", "context": "dashboard", "slug": "swiss", "why": "Dashboard default; 'internal' leans swiss per context note." },
+    { "id": 4,  "brief": "Website for an indie wrestling promotion. Loud, gritty, it should feel like a flyer stapled to a pole.", "context": "marketing", "slug": "grunge", "why": "Texture words (gritty, stapled flyer) point to grunge over neo-brutalism or collage." },
+    { "id": 5,  "brief": "Portfolio for a type designer who releases retail fonts.", "context": "portfolio", "slug": "swiss", "why": "Router rule 5: subject is visual, prefer the quieter candidate over editorial." },
+    { "id": 6,  "brief": "RV dealership in Tennessee, they have great drone photos of the lot and the units.", "context": "ecommerce", "slug": "photo-led", "why": "Strong photography decides it per ecommerce context note." },
+    { "id": 7,  "brief": "Docs site for our CLI tool.", "context": "docs", "slug": "mono-editorial", "why": "Docs default; CLI audience reinforces mono." },
+    { "id": 8,  "brief": "Marketing site for a kids' reading app, bright and encouraging.", "context": "marketing", "slug": "playful", "why": "Consumer, kids, bright: playful over claymorphism (shape and tone, not surface)." },
+    { "id": 9,  "brief": "Lookbook site for a small fashion label, mostly full-page photos and almost no text.", "context": "portfolio", "slug": "luxury", "why": "Fashion plus 'almost no text' is luxury; photo-led would be the miss (photos sit in whitespace, not full-bleed grid)." },
+    { "id": 10, "brief": "Retro arcade bar opening in East Nashville, need hours, menu, events.", "context": "local-business", "slug": "pixel", "why": "Router rule 2: 'arcade' maps to pixel; local-business allows it." },
+    { "id": 11, "brief": "Make our Stripe-style payments landing page but dark.", "context": "marketing", "slug": "dark-saas", "why": "Named reference is gradient-mesh but 'dark' overrides; gradient-mesh is light by definition (vs line)." },
+    { "id": 12, "brief": "Clean minimal site for a Japanese tea importer.", "context": "ecommerce", "slug": "japanese-minimal", "why": "Discriminator: minimalism is cold and achromatic; tea importer wants warm paper tones." },
+    { "id": 13, "brief": "A dashboard for warehouse inventory.", "context": "dashboard", "slug": "swiss", "why": "Silent brief. Exercises the dashboard default." },
+    { "id": 14, "brief": "We need a landing page for our new product.", "context": "marketing", "slug": "gradient-mesh", "why": "Silent brief. Exercises the marketing default." },
+    { "id": 15, "brief": "A blog.", "context": "blog", "slug": "editorial", "why": "Silent brief, minimal. Exercises the blog default." },
+    { "id": 16, "brief": "Website for my plumbing company.", "context": "local-business", "slug": "scandinavian", "why": "Silent brief. Exercises the local-business default." },
+    { "id": 17, "brief": "Site for our design studio.", "context": "agency", "slug": "motion-first", "why": "Silent brief. Exercises the agency default; this is the one place the loud four are a default." }
+  ]
+}
