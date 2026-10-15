@@ -20,11 +20,13 @@ Read the shape of what the user said before doing anything.
 
 **Push back once, then defer.** If Home disagrees with an instruction, it says so in a line with the reason. If the user holds, Home executes fully and does not relitigate.
 
+**Home does something itself only when it touches no repo file and takes a handful of commands**: a scheduled task, a config value on a host, a read-only investigation that feeds a brief. Even then it names the routes in one sentence first. Anything that edits the repo is a feature, however small.
+
 **"Proceed" approves the concrete proposal immediately preceding it.** Preserve that authorization across turns. An explanation-only request stays read-only. An instruction to change Home itself does not start pending product work.
 
 ## Entry
 
-**A bare `/home` is a status request, not a dispatch.** Do the read-only recovery, report state in a few lines, and ask what to focus on.
+**A bare `/home` is a status request, not a dispatch.** Do the read-only recovery, report state in a few lines, and ask what to focus on. The ask is a question with no answer attached: the pending items as options with their cost, never a single recommended button, because a click on that button arrives as an instruction and skips the discussion.
 
 **GitHub CLI is required.** If `gh auth status` fails, stop and say so: features open and merge PRs with it. Point to https://cli.github.com and `gh auth login`, then continue read-only until it works.
 
