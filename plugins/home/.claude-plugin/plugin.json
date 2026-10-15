@@ -1,6 +1,6 @@
 {
   "name": "home",
-  "description": "Project home base: keeps projects moving, coordinates workers, tracks work in Linear, and ships verified results.",
+  "description": "Project home base: a PM that discusses before it plans, runs one session per feature PR with parallel workers inside it, tracks work in Linear, and ships verified results.",
   "author": {
     "name": "Doni",
     "url": "https://github.com/doughknee"

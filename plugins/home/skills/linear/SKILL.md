@@ -31,7 +31,7 @@ Linear holds what only Home and the user read. The repo's `CLAUDE.md` holds what
 
 **Backlog is the inbox.** Any improvement Home proposes gets filed to Backlog as it is proposed, before the user answers, with a one-line description. "What's next" is then answered by reading Backlog by priority, never by inventing a fresh list. The user reorders in Linear.
 
-**PRs attach to issues.** When a worker's PR opens, attach its URL to the issue (`create_attachment`) unless Linear's GitHub integration already did. Done issues carry their evidence.
+**PRs attach to issues.** When a feature's PR opens, attach its URL to the issue (`create_attachment`) unless Linear's GitHub integration already did. Done issues carry their evidence. Units inside a feature are a checklist in its brief, not sub-issues.
 
 ## Lifecycle
 

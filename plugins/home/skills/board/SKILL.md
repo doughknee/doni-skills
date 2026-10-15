@@ -70,10 +70,10 @@ Statuses are exactly `Backlog`, `Todo`, `In Progress`, `In Review`, `Done`, `Can
 
 Worktrees each carry their own copy of `.home/`, so a board edited on a branch is invisible to Home until the PR merges and collides with every other branch that touched it. Therefore:
 
-- **Home is the only writer.** Workers never edit `.home/`. Their brief is in their prompt, and their status comes back in their four-line return, which Home records.
-- **Home writes only in the primary checkout**, found with `git rev-parse --git-common-dir` (its parent directory), never in a worker's worktree.
+- **Home is the only writer.** Feature sessions and workers never edit `.home/`. Their brief is in their prompt, and their status comes back in their four-line return, which Home records.
+- **Home writes only in the primary checkout**, found with `git rev-parse --git-common-dir` (its parent directory), never in a feature's worktree.
 - **Every write is one commit of `.home/` alone**, with a message such as `board: MYP-2 → In Review`, made when the primary checkout is on the default branch. If it is on another branch, write the files, leave them uncommitted, and say so in the status report; commit at the next entry on the default branch.
-- Workers rebase before merging as usual. Because they never touch `.home/`, the board never conflicts with a PR.
+- Features merge main before opening their PR as usual. Because they never touch `.home/`, the board never conflicts with a PR.
 
 ## Rules
 

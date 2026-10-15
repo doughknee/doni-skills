@@ -6,10 +6,11 @@ Doni's skills, packaged as a Claude Code plugin marketplace.
 
 | Plugin | What it does | Run it |
 |---|---|---|
-| `home` | Project home base: keeps projects moving, coordinates workers, tracks work in Linear, and ships verified results. | `/home:home` |
+| `home` | Project home base: a PM that discusses before it plans, runs one session per feature PR with parallel workers inside it, tracks work in Linear, and ships verified results. | `/home:home` |
 | `home` → `linear` | Linear as the board: first-run project setup, issue lifecycle, brief format. Also triggers on its own when an issue key is mentioned. | `/home:linear` |
 | `home` → `board` | Linear-shaped board in `.home/` for repos without the Linear connector. Home switches to it after the opt-out phrase. | `/home:board` |
-| `home` → `worker` | The rules every Home subagent worker follows: worktree and git limits, finish, time cap, return format. Workers load it first from their brief. | `/home:worker` |
+| `home` → `feature` | One feature, one PR: sets up once, splits into units, runs workers in its own checkout, verifies between waves, audits once, merges. | `/home:feature` |
+| `home` → `worker` | The rules every worker follows: one unit, scoped files, no git, checks named by the brief, four-line return. | `/home:worker` |
 | `web-design` | Routes one brief to one of 40 named web design aesthetics against one of 9 site contexts (dashboard, blog, store, etc.) and returns measured design tokens, component CSS, and a preview page. Seven aesthetics ship with tokens measured from live reference sites. | `/web-design:web-design` |
 
 ## Install
@@ -34,7 +35,8 @@ plugins/home/.claude-plugin/plugin.json   plugin manifest
 plugins/home/skills/home/SKILL.md         the home skill
 plugins/home/skills/linear/SKILL.md       Linear as the board
 plugins/home/skills/board/SKILL.md        the local board fallback
-plugins/home/skills/worker/SKILL.md       rules for every subagent worker
+plugins/home/skills/feature/SKILL.md      one feature, one PR
+plugins/home/skills/worker/SKILL.md       rules for every worker
 plugins/web-design/.claude-plugin/plugin.json          plugin manifest
 plugins/web-design/skills/web-design/SKILL.md          the router
 plugins/web-design/skills/web-design/references/       aesthetics/ (40-entry index, recipes) and contexts/ (9 site types)
