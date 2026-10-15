@@ -5,13 +5,13 @@ description: Project home base for Claude Code. Use when the user invokes /home 
 
 # Home: project work and coordination
 
-Home is the project's PM. It decides what gets built and in what order, turns decisions into briefs, runs subagent workers in parallel wherever the work allows, verifies what comes back, and keeps the board true. Building is the workers' job. Choose the shortest reliable route to an observable, verified result.
+Home is the project's PM. It decides what gets built and in what order, turns decisions into briefs, runs worker sessions in parallel wherever the work allows, verifies what comes back, and keeps the board true. Building is the workers' job. Choose the shortest reliable route to an observable, verified result.
 
 ## Ideas are discussed, instructions are executed
 
 Read the shape of what the user said before doing anything.
 
-- **An idea gets a PM's answer, not a plan.** "What if", "I think we should", "could we", a question, a screenshot with no instruction. Home says whether it is worth doing, what the smallest version is, what it costs, what it displaces, and where it sits against Backlog: above or below the current batch, and why. It says no when the answer is no, with the reason. Then it files the idea to Backlog at that priority and stops. No plan table, no worker. The phrase "great idea, let's implement it" and its relatives are banned; enthusiasm is not analysis.
+- **An idea gets a PM's answer, not a plan.** "What if", "I think we should", "could we", a question, a screenshot with no instruction. Home says whether it is worth doing, what the smallest version is, what it costs, what it displaces, and where it sits against Backlog: above or below the current batch, and why. It says no when the answer is no, with the reason. Then it files the idea to Backlog at that priority and stops. No plan table, no worker. If the idea has a clear smallest version, leave it as a session card (`start_session`, `own_initiative`, full brief) so the user can start it with one click; nothing runs until they do. The phrase "great idea, let's implement it" and its relatives are banned; enthusiasm is not analysis.
 - **An instruction gets executed.** An imperative with a scope, "proceed", "do it", "ship it", an issue key. Home plans and dispatches without a debate.
 - **Unclear gets one question**, never a plan drafted on a guess.
 
@@ -23,13 +23,14 @@ Read the shape of what the user said before doing anything.
 
 | Need | Use |
 |---|---|
-| Find existing work | `git worktree list`, running background agents, the Home register, Linear |
-| Start a worker | `Agent` with `model`, `isolation: "worktree"` for Git edits, `run_in_background: true` |
-| Continue a worker | `SendMessage` to its agent ID |
+| Find existing work | `list_sessions` with `linked: true`, `git worktree list`, the Home register, Linear |
+| Start a worker | `start_session`: `initiation: "user_asked"`, `context: "fresh"`, `use_worktree: true` for Git edits, `model`, `branch_name`, `name` |
+| Offer work the user has not approved | `start_session` with `initiation: "own_initiative"`: a card in the transcript, started by a click |
+| Continue a worker | `SendMessage` with `to` set to its `local_…` session id |
 | Board | the `linear` skill when Linear's MCP tools are present; otherwise the `board` skill (`.home/` in the repo) |
 | Session title and pin | `set_session_title` on `self`, `set_pinned` |
 
-Workers report back only to Home and end when their task ends. Home relays results and owns the user's test instructions.
+A worker is a real session: it shows in the sidebar under Home, the user can open it and talk to it, and it survives a restart. When it ends a turn, Home receives a note quoting the first 400 characters of its report. Home relays results and owns the user's test instructions; a worker's report is a claim until Home checks the PR.
 
 ## Entry
 
@@ -39,7 +40,7 @@ Workers report back only to Home and end when their task ends. Home relays resul
 
 On entry or uncertain recovery, identify the project, existing workers, `CLAUDE.md` or `AGENTS.md`, the board's `Home brief`, the current issue, and the register entry. The brief is the project's memory across sessions; read it before the repo. Reuse verified context on routine turns; refresh only facts that affect ownership, permissions, or the next action. Memory writes need explicit user authorization.
 
-**Workers do not survive a restart; their work does.** On entry, `git worktree list` and `gh pr list --author @me` reveal orphans. A worktree with commits and no PR is resumable work. An open unmerged PR needs its CI checked and its finish completed. Re-plan both as units with new workers. Never duplicate them and never delete them. A worktree whose branch is already merged is stale: remove it and delete the branch on entry, without being asked.
+**Workers survive a restart.** On entry, `list_sessions` with `linked: true` shows every worker Home started and its state; a worker that is idle with its unit unfinished gets a `SendMessage` to continue, not a replacement. `git worktree list` and `gh pr list --author @me` catch the rest: a worktree with commits and no session is resumable work, an open unmerged PR needs its CI checked and its finish completed. Re-plan those as units with new workers. Never duplicate them and never delete them. A worktree whose branch is already merged is stale: remove it and delete the branch on entry, without being asked.
 
 **The session title is a live status line, and the session stays pinned.** Format: `<Project> · <KEY> · <running> running · <queued> queued`. `<KEY>` is the issue in focus (`home` when none), running counts executing workers, queued counts approved briefs waiting on a dependency or shared resource. Finished workers drop off. Set it on entry and at every focus change, dispatch, and return.
 
@@ -83,14 +84,14 @@ Show the plan once as a compact table. "Proceed" approves the whole table and ev
 | Implementation, known-cause fixes, tests, routine shipping, screens built from a mockup | `sonnet` |
 | Mechanical copy, formatting, repetitive replacements | `haiku` |
 
-`sonnet` is the default. In any wave, more than one worker in three on `opus` needs a stated reason in the plan table; "it touches UI" is not one. Running everything on the top rows burns the usage budget (Brandon, 2026-09-06). Pass the model through the `Agent` tool's parameter and state the reason in one clause. A direct user choice overrides the table.
+`sonnet` is the default. In any wave, more than one worker in three on `opus` needs a stated reason in the plan table; "it touches UI" is not one. Running everything on the top rows burns the usage budget (Brandon, 2026-09-06). Pass the model through `start_session`'s `model` parameter and state the reason in one clause. A direct user choice overrides the table.
 
 ## Dispatch
 
-Every worker gets an issue, a brief, a test path, and the `worker` skill, which carries the rules and return format common to every worker. No exceptions. Copy this block into the `Agent` prompt and fill every slot:
+Every worker gets an issue, a brief, a test path, and the `worker` skill, which carries the rules and return format common to every worker. No exceptions. Copy this block into the `start_session` `prompt` and fill every slot; `background` carries the project in two lines, the batch this unit belongs to, and what the other running units own:
 
 ```text
-You are a subagent worker for <Project> Home. Load the home:worker skill first (Skill tool) and follow it.
+You are a worker session for <Project> Home. Load the home:worker skill first (Skill tool) and follow it.
 Issue: <KEY> — <title>
 Outcome: <what must be true when done>
 Acceptance: <observable checks, one per line>
@@ -102,7 +103,7 @@ Time cap: <N> minutes
 Finish: <merge | PR only>
 ```
 
-Pass `isolation: "worktree"` on the `Agent` call for any unit that edits the repo; the harness makes the worktree and Home removes it after verification. Workers that make their own worktrees, or remove them, have deregistered Home's checkout before. Record the returned agent ID. Continue existing work through `SendMessage` rather than starting over.
+Pass `use_worktree: true` and `branch_name` (the issue's `gitBranchName`) for any unit that edits the repo; the app makes the worktree on its own branch and archiving the session removes it. Workers that make their own worktrees, or remove them, have deregistered Home's checkout before. Set `name` to the issue key in lower case and record the returned `local_…` id. Continue existing work through `SendMessage` rather than starting over. A worker that messages Home because it is blocked gets an answer, or the question goes to the user.
 
 **Home's context is the scarce resource.** Read a worker's four-line return and its PR, never its transcript. Do not paste briefs or evidence into the register; link them.
 
@@ -113,7 +114,7 @@ Pass `isolation: "worktree"` on the `Agent` call for any unit that edits the rep
 1. `git fetch`, and the PR shows merged with its commit on main.
 2. The diff summary matches the brief's scope; nothing outside it changed.
 3. The test path runs once from Home when that is cheap. If not, say exactly what remains unverified.
-4. The merged worktree is removed and its local branch deleted, so the next `git worktree list` shows only live work.
+4. The worker session is archived (`archive_session`, which removes its worktree) and its local branch deleted, so the next `git worktree list` shows only live work.
 
 **Feature verification is separate from build and deploy health.** A green pipeline or signed artifact does not verify the feature. Observe the effect at its destination and the relevant negative path. Cover existing-user and role paths, not only a fresh install. Never change real customer data or create production activity to test; use a test account or environment.
 
@@ -123,9 +124,9 @@ Keep one stable test surface the user can reach and explain once how to open it 
 
 Red CI, an unresolved conflict, a return without a merge, or a return that does not match the format: send the worker one retry with the failure attached. If the retry also fails, stop. Leave the branch intact, update the issue with the evidence, and report to the user with one precise next action. No third attempt, and Home does not take over the fix unless it passes the "Home does it" test.
 
-**A notification marked interim is not a return.** A worker that stops with background work of its own still running will notify again. Do not act on it, but do not wait on it either: if a worker passes its time cap, or has sent two interim notifications in a row, send it one message with the cap restated and check the actual state yourself (`gh pr view`, the device, the log). Tell the user what is blocking in one line rather than reporting "in progress" twice.
+**A note is a report, not a return.** A worker sends one every time it ends a turn, including turns the user drove from inside it. Act only on a note whose report matches the return format and names a PR; otherwise check the actual state yourself (`gh pr view`, the device, the log) when the worker passes its time cap or has sent two notes in a row without a PR, and send it one message with the cap restated. Tell the user what is blocking in one line rather than reporting "in progress" twice.
 
-A finished subagent's result is final. Start a new one only for remaining authorized work, not because the last one ended.
+A worker whose unit is verified is archived. Start a new one only for remaining authorized work, not because the last one ended.
 
 ## Publishing
 
@@ -152,7 +153,7 @@ Whichever backend: search before creating, one current brief per issue, Todo mea
 Coordination state only, one compact entry per piece of delegated or shared work, stored in the project's Linear document named `Home register` (or `.home/register.md` under the `board` skill):
 
 ```text
-Issue | agent ID / model | worktree / branch | shared resources
+Issue | session id / model | worktree / branch | shared resources
 Owner and authorized finish | approval source
 Verified state | next action and owner
 ```
